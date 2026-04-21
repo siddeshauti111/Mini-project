@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Analyzer</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(circle at top, #1d2433 0%, #0d1117 55%, #090c10 100%);
+        color: #e6edf3;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+      }
+
+      .card {
+        width: min(560px, 100%);
+        background: rgba(17, 23, 33, 0.92);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 14px;
+        padding: 1.5rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      h1 {
+        margin: 0 0 0.4rem;
+        font-size: clamp(1.4rem, 2.6vw, 2rem);
+      }
+
+      p {
+        margin: 0;
+        color: #9fb0c3;
+      }
+
+      .upload {
+        margin-top: 1.2rem;
+      }
+
+      input[type="file"] {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: #0d1626;
+        color: #d2deea;
+        cursor: pointer;
+      }
+
+      .results {
+        margin-top: 1.2rem;
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+
+      .metric {
+        background: #0f1b2d;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 10px;
+        padding: 0.85rem;
+      }
+
+      .label {
+        display: block;
+        font-size: 0.8rem;
+        color: #9fb0c3;
+      }
+
+      .value {
+        display: block;
+        margin-top: 0.4rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f8fbff;
+      }
+
+      .status {
+        margin-top: 1rem;
+        min-height: 1.2rem;
+        font-size: 0.92rem;
+        color: #9fb0c3;
+      }
+
+      @media (max-width: 480px) {
+        .card {
+          padding: 1.1rem;
+        }
+
+        .value {
+          font-size: 1.35rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Text Analyzer</h1>
+      <p>Upload a .txt file to see quick text statistics.</p>
+
+      <div class="upload">
+        <input id="fileInput" type="file" accept=".txt,text/plain" />
+      </div>
+
+      <section class="results" aria-live="polite">
+        <article class="metric">
+          <span class="label">Word Count</span>
+          <span class="value" id="wordCount">0</span>
+        </article>
+        <article class="metric">
+          <span class="label">Character Count</span>
+          <span class="value" id="charCount">0</span>
+        </article>
+        <article class="metric">
+          <span class="label">Line Count</span>
+          <span class="value" id="lineCount">0</span>
+        </article>
+      </section>
+
+      <div class="status" id="status">Choose a text file to begin.</div>
+    </main>
+
+    <script>
+      const fileInput = document.getElementById('fileInput');
+      const wordCountEl = document.getElementById('wordCount');
+      const charCountEl = document.getElementById('charCount');
+      const lineCountEl = document.getElementById('lineCount');
+      const statusEl = document.getElementById('status');
+
+      function updateCounts(text) {
+        const trimmed = text.trim();
+        const words = trimmed ? trimmed.split(/\s+/).length : 0;
+        const characters = text.length;
+        const lines = text === '' ? 0 : text.split(/\r\n|\r|\n/).length;
+
+        wordCountEl.textContent = words;
+        charCountEl.textContent = characters;
+        lineCountEl.textContent = lines;
+      }
+
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+          return;
+        }
+
+        if (file.type && file.type !== 'text/plain' && !file.name.endsWith('.txt')) {
+          statusEl.textContent = 'Please select a valid .txt file.';
+          updateCounts('');
+          return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          const content = typeof reader.result === 'string' ? reader.result : '';
+          updateCounts(content);
+          statusEl.textContent = `Analyzed: ${file.name}`;
+        };
+
+        reader.onerror = () => {
+          statusEl.textContent = 'Could not read that file. Please try another .txt file.';
+          updateCounts('');
+        };
+
+        reader.readAsText(file);
+      });
+    </script>
+  </body>
+</html>
